@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<!-- Codificação de caracteres (acentos funcionam) -->
+<meta charset="UTF-8">
+<!-- Faz a página se ajustar à largura do celular -->
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<!-- Título da aba do navegador -->
+<title>Acordos Comerciais</title>
+<!-- Ícone da aba (logo) -->
+<link rel="icon" type="image/jpeg" href="assets/favicon.jpg">
+<!-- Todo o visual da página está no arquivo css/estilos.css -->
+<link rel="stylesheet" href="css/estilos.css">
+<!-- Fontes do Google (Source Serif 4, IBM Plex Sans e Mono); sem internet o navegador usa fontes parecidas -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
+<!-- Biblioteca do Supabase (conexão com o banco de dados online) -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<!-- Biblioteca SheetJS (lê planilhas .xls/.xlsx na importação de parceiros) -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+</head>
+<!-- Início da parte visível da página -->
+<body>
+<!-- Ícones: sprite SVG escondido. Cada ícone é usado em qualquer lugar com <svg><use href="#i-nome"/></svg>. -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+  <defs>
+    <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></symbol>
+    <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+    <symbol id="i-refresh" viewBox="0 0 24 24"><path d="M21 12a9 9 0 1 1-3-6.7L21 8"/><path d="M21 3v5h-5"/></symbol>
+    <symbol id="i-users" viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.9M16 3.1a4 4 0 0 1 0 7.8"/></symbol>
+    <symbol id="i-x" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></symbol>
+    <symbol id="i-filter" viewBox="0 0 24 24"><path d="M3 5h18l-7 8v6l-4 2v-8z"/></symbol>
+    <symbol id="i-edit" viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></symbol>
+    <symbol id="i-alert" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12 5 5 9-10"/></symbol>
+    <symbol id="i-calendar" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 11h18"/></symbol>
+    <symbol id="i-inbox" viewBox="0 0 24 24"><path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.5 5h13L22 12v6a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-6z"/></symbol>
+    <symbol id="i-copy" viewBox="0 0 24 24"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></symbol>
+    <symbol id="i-trash" viewBox="0 0 24 24"><path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14"/></symbol>
+    <symbol id="i-save" viewBox="0 0 24 24"><path d="M5 3h11l3 3v15H5z"/><path d="M8 3v5h7V3M8 21v-7h8v7"/></symbol>
+    <symbol id="i-upload" viewBox="0 0 24 24"><path d="M12 16V4M7 9l5-5 5 5"/><path d="M4 20h16"/></symbol>
+  </defs>
+</svg>
+
+<!-- Página principal. -->
+<!-- Contêiner central da página -->
+<div class="app">
+  <!-- Cabeçalho: logo, título e botões de ação. -->
+  <!-- Cabeçalho -->
+  <header class="app-head">
+    <!-- Logo + título -->
+    <div class="brand">
+      <!-- Logo do Grupo Alyne (arquivo assets/logo.jpg) -->
+      <img class="brand-logo" src="assets/logo.jpg" alt="Grupo Alyne Cosméticos" width="72" height="72">
+      <div>
+        <!-- Título principal -->
+        <h1>Acordos Comerciais</h1>
+        <p class="sub">Acompanhamento de metas, investimento e pagamentos por cliente</p>
+      </div>
+    </div>
+    <!-- Botões do cabeçalho -->
+    <div class="head-actions">
+      <!-- Abre a janela da base de parceiros -->
+      <button class="btn btn-secondary" id="btnParceiros" title="Base de parceiros e vendedores"><svg class="ic"><use href="#i-users"/></svg>Base de parceiros</button>
+      <!-- Recarrega os dados -->
+      <button class="btn btn-secondary" id="btnRefresh" title="Atualizar dados"><svg class="ic" id="icRefresh"><use href="#i-refresh"/></svg>Atualizar</button>
+      <!-- Abre o formulário de novo acordo -->
+      <button class="btn btn-primary" id="btnNovo"><svg class="ic"><use href="#i-plus"/></svg>Novo acordo</button>
+    </div>
+  </header>
+
+  <!-- Faixas de aviso: status geral (carregando/erro) e aviso da migração de datas (preenchidos pelo JavaScript). -->
+  <div id="statusBanner" role="status" aria-live="polite"></div>
+  <div id="migracaoAviso" hidden></div>
+
+  <!-- Resumo geral: sempre reflete os filtros aplicados. -->
+  <p class="kpis-note" id="kpisNote"></p>
+  <!-- Cartões de resumo (preenchidos por renderSummary em js/tabela.js) -->
+  <section class="kpis" id="summary" aria-label="Resumo geral"></section>
+
+  <!-- Filtros. Todos atuam juntos. Linha 1: busca e código do parceiro. Linha 2: consultor, status, tipo e saldo. Linha 3: período de vigência. -->
+  <section class="panel filters" aria-label="Filtros">
+    <div class="filters-head">
+      <div class="filters-title"><svg class="ic"><use href="#i-filter"/></svg>Filtros <span class="badge-count" id="filterCount" hidden>0</span></div>
+      <button class="btn btn-ghost btn-sm" id="btnLimpar" type="button" disabled><svg class="ic"><use href="#i-x"/></svg>Limpar filtros</button>
+    </div>
+    <!-- Grade dos filtros -->
+    <div class="filter-grid">
+      <div class="field fg-6">
+        <!-- Filtro: busca por texto (cliente, código ou nº do acordo) -->
+        <label for="fBusca">Buscar</label>
+        <input type="text" id="fBusca" placeholder="Cliente, código ou nº do acordo" autocomplete="off">
+      </div>
+      <div class="field fg-6">
+        <!-- Filtro: código do parceiro (só números) + botão Pesquisar -->
+        <label for="fCodigo">Código do parceiro</label>
+        <div class="input-group">
+          <input type="text" id="fCodigo" inputmode="numeric" placeholder="ex: 601" autocomplete="off" aria-describedby="codMsg">
+          <button class="btn btn-secondary" id="btnPesquisar" type="button"><svg class="ic"><use href="#i-search"/></svg>Pesquisar</button>
+        </div>
+        <!-- Mensagem abaixo do código (erro, ou nome do parceiro e nº de acordos) -->
+        <div class="field-msg" id="codMsg" role="status"></div>
+      </div>
+
+      <!-- Filtros em lista: consultor (preenchido pelo JavaScript), status, tipo e saldo -->
+      <div class="field fg-3"><label for="fConsultor">Consultor</label>
+        <select id="fConsultor"><option value="">Todos</option></select></div>
+      <div class="field fg-3"><label for="fStatus">Status</label>
+        <select id="fStatus">
+          <option value="">Todos</option>
+          <option value="em andamento">Em andamento</option>
+          <option value="encerrado">Encerrado</option>
+          <option value="pendente">Pendente</option>
+        </select></div>
+      <div class="field fg-3"><label for="fTipo">Tipo</label>
+        <select id="fTipo">
+          <option value="">Todos</option>
+          <option value="SELL IN">Sell In</option>
+          <option value="SELL OUT">Sell Out</option>
+        </select></div>
+      <div class="field fg-3"><label for="fSaldo">Saldo</label>
+        <select id="fSaldo">
+          <option value="">Todos</option>
+          <option value="pendente">Com saldo a pagar</option>
+          <option value="quitado">Quitado</option>
+        </select></div>
+
+      <!-- Linha divisória: abaixo ficam os filtros de período -->
+      <div class="filter-sep"></div>
+
+      <!-- Período: data inicial -->
+      <div class="field fg-3 pair"><label for="fDe">Vigência — data inicial</label><input type="date" id="fDe" aria-describedby="periodoMsg"></div>
+      <!-- Período: data final -->
+      <div class="field fg-3 pair"><label for="fAte">Vigência — data final</label><input type="date" id="fAte" aria-describedby="periodoMsg"></div>
+      <div class="field fg-6">
+        <label class="lbl" style="margin-bottom:0">&nbsp;</label>
+        <!-- Caixa: incluir acordos antigos, sem datas de vigência -->
+        <label class="check" for="fSemDatas"><input type="checkbox" id="fSemDatas"><span>Incluir acordos sem datas de vigência</span></label>
+      </div>
+      <!-- Mensagem do período (erro de datas invertidas, por exemplo) -->
+      <div class="field-msg fg-12" id="periodoMsg" style="grid-column:1/-1;margin-top:-4px" role="status"></div>
+    </div>
+  </section>
+
+  <!-- Contagem de resultados e tabela de acordos (as linhas são desenhadas por renderTable). -->
+  <!-- Contagem: "X de Y acordos" -->
+  <div class="results-head"><span class="results-count" id="countNote" aria-live="polite"></span></div>
+
+  <div class="panel table-card">
+    <div class="table-scroll">
+      <!-- Tabela de acordos; as linhas (<tr>) são criadas por renderTable em js/tabela.js -->
+      <table class="acordos">
+        <thead>
+          <tr>
+            <!-- Títulos das colunas -->
+            <th>Cliente</th>
+            <th>Consultor</th>
+            <th>Tipo</th>
+            <th>Vigência</th>
+            <th>Situação</th>
+            <th class="num">Realizado</th>
+            <th class="num">% Meta</th>
+            <th class="num">Investimento</th>
+            <th class="num">Pago</th>
+            <th class="num">Saldo</th>
+            <th><span class="sr-only">Ações</span></th>
+          </tr>
+        </thead>
+        <!-- Corpo da tabela, preenchido pelo JavaScript -->
+        <tbody id="tbody"></tbody>
+      </table>
+    </div>
+    <!-- Área dos estados 'sem acordos', 'sem resultados' e 'erro' (preenchida pelo JavaScript). -->
+    <div id="emptyState" hidden></div>
+  </div>
+</div>
+
+<!-- Janela do acordo -->
+<!-- JANELA DO ACORDO (formulário de criar/editar); fica escondida até ser aberta -->
+<div class="overlay" id="overlay">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <div class="modal-head">
+      <!-- Título muda entre Novo e Editar -->
+      <h2 id="modalTitle">Novo acordo</h2>
+      <button class="icon-btn" id="btnClose" aria-label="Fechar"><svg class="ic"><use href="#i-x"/></svg></button>
+    </div>
+    <div class="modal-body">
+      <!-- Seção 1: identificação do acordo -->
+      <div class="section-title">Identificação</div>
+      <div class="field-row three">
+        <!-- Número do acordo -->
+        <div class="field"><label for="fNumero">N° do acordo</label><input id="fNumero" type="text" placeholder="ex: 260901"></div>
+        <!-- Código do cliente: ao digitar, preenche razão social, consultor e coordenador (js/parceiros.js) -->
+        <div class="field"><label for="fCodCliente">Código cliente</label><input id="fCodCliente" type="text" autocomplete="off" placeholder="digite para preencher"><div class="hint" id="codHint"></div></div>
+        <!-- Tipo: Sell In ou Sell Out -->
+        <div class="field"><label for="fFTipo">Tipo</label>
+          <select id="fFTipo"><option>SELL IN</option><option>SELL OUT</option></select>
+        </div>
+      </div>
+      <div class="field-row">
+        <!-- Razão social / nome do cliente -->
+        <div class="field"><label for="fCliente">Cliente</label><input id="fCliente" type="text" placeholder="Razão social / nome"></div>
+        <!-- Consultor de vendas (com sugestões) -->
+        <div class="field"><label for="fConsultorForm">Consultor de vendas</label><input id="fConsultorForm" type="text" list="consultoresList" placeholder="Nome do consultor"></div>
+      </div>
+      <!-- Lista de sugestões de consultores -->
+      <datalist id="consultoresList"></datalist>
+      <div class="field-row">
+        <!-- Coordenador -->
+        <div class="field"><label for="fCoord">Coordenador</label><input id="fCoord" type="text"></div>
+        <!-- Status do acordo -->
+        <div class="field"><label for="fFStatus">Status</label>
+          <select id="fFStatus">
+            <option value="em andamento">Em andamento</option>
+            <option value="encerrado">Encerrado</option>
+            <option value="pendente">Pendente</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Seção 2: datas de vigência e contrato assinado -->
+      <div class="section-title">Vigência e formalização</div>
+      <div class="field-row">
+        <!-- Data de início (campo de calendário) -->
+        <div class="field"><label for="fDataInicio">Data de início do acordo</label><input id="fDataInicio" type="date"></div>
+        <!-- Data de término (não pode ser anterior ao início) -->
+        <div class="field"><label for="fDataFim">Data de término do acordo</label><input id="fDataFim" type="date" aria-describedby="dataMsg"></div>
+      </div>
+      <!-- Mensagem de erro das datas -->
+      <div class="field-msg err" id="dataMsg" role="alert"></div>
+
+      <!-- Cartão: contrato assinado? -->
+      <div class="signed-card" id="signedCard">
+        <div class="signed-card-text">
+          <div class="signed-card-title">Contrato assinado?</div>
+          <div class="signed-card-sub">Indica se o acordo já foi formalizado com o cliente</div>
+        </div>
+        <div class="segmented">
+          <button type="button" id="btnAssinadoSim">Sim, assinado</button>
+          <button type="button" id="btnAssinadoNao">Ainda não</button>
+        </div>
+      </div>
+
+      <!-- Seção 3: valores de cada mês -->
+      <div class="section-title">Valores mensais (acordado × realizado)</div>
+      <p class="section-sub">Use a linha “Sem giro?” para anotar o mês em que o cliente não comprou.</p>
+      <div class="meses-grid">
+        <!-- Grade dos 12 meses, montada por buildMesesTable (js/formulario.js) -->
+        <table class="meses" id="mesesTable"></table>
+      </div>
+
+      <!-- Seção 4: meta batida e regra de investimento -->
+      <div class="section-title">Meta e regra de investimento</div>
+      <!-- Meta batida: se marcado "Não bateu", o investimento devido e o saldo a pagar ficam zerados (veja computeTotals). -->
+      <!-- Cartão: o cliente bateu a meta? (Não bateu = saldo a pagar zerado) -->
+      <div class="signed-card" id="metaCard" style="margin-top:0;margin-bottom:16px">
+        <div class="signed-card-text">
+          <div class="signed-card-title">O cliente bateu a meta?</div>
+          <div class="signed-card-sub">Se marcar “Não bateu”, o acordo não gera investimento e o saldo a pagar fica zerado.</div>
+        </div>
+        <div class="segmented">
+          <button type="button" id="btnMetaSim" class="sim">Bateu</button>
+          <button type="button" id="btnMetaNao" class="nao">Não bateu</button>
+          <button type="button" id="btnMetaIndef" class="active">A definir</button>
+        </div>
+      </div>
+      <!-- Aviso exibido quando a meta não foi batida -->
+      <div class="field-msg warn" id="metaAviso" hidden>Meta não batida: investimento devido e saldo a pagar zerados. Os valores já pagos continuam registrados.</div>
+      <!-- Aviso exibido enquanto a migração do banco não foi feita -->
+      <div class="field-msg err" id="metaIndisponivel" hidden>Seleção de meta indisponível até a migração do banco ser executada (veja o aviso no topo).</div>
+      <!-- Escolha: % sobre o realizado ou valor fixo -->
+      <div class="segmented regra-toggle">
+        <button type="button" id="btnRegraPerc" class="active">% sobre o realizado</button>
+        <button type="button" id="btnRegraFixo">Valor fixo</button>
+      </div>
+      <div class="field-row">
+        <!-- Campo do percentual (aparece na regra percentual) -->
+        <div class="field" id="campoPercentual"><label for="fPercentual">Percentual (%)</label><input id="fPercentual" type="number" step="0.1" placeholder="ex: 5"></div>
+        <!-- Campo do valor fixo (aparece na regra fixa) -->
+        <div class="field" id="campoFixo" style="display:none;"><label for="fValorFixo">Valor fixo (R$)</label><input id="fValorFixo" type="number" step="0.01" placeholder="ex: 1000"></div>
+      </div>
+
+      <!-- Seção 5: pagamentos já feitos -->
+      <div class="section-title">Pagamentos já realizados</div>
+      <div class="field-row">
+        <!-- Data do pagamento (texto livre) -->
+        <div class="field"><label for="fDataPagamento">Data do pagamento</label><input id="fDataPagamento" type="text" placeholder="ex: 10/07"></div>
+      </div>
+      <!-- Valores pagos por forma: Swile, bonificado, desconto em boleto, boleto e brindes -->
+      <div class="pagto-grid">
+        <div class="field"><label for="fSwile">Swile</label><input id="fSwile" type="number" step="0.01"></div>
+        <div class="field"><label for="fBonificado">Bonificado</label><input id="fBonificado" type="number" step="0.01"></div>
+        <div class="field"><label for="fDescBoleto">Desc. boleto</label><input id="fDescBoleto" type="number" step="0.01"></div>
+        <div class="field"><label for="fBoleto">Boleto</label><input id="fBoleto" type="number" step="0.01"></div>
+        <div class="field"><label for="fBrindes">Brindes</label><input id="fBrindes" type="number" step="0.01"></div>
+      </div>
+
+      <!-- Faixa de totais calculados ao vivo -->
+      <div class="computed-strip" id="computedStrip"></div>
+
+      <!-- Seção 6: observações -->
+      <div class="section-title">Observações</div>
+      <div class="field"><textarea id="fObs" aria-label="Observações" placeholder="Notas sobre o acordo, pendências, etc."></textarea></div>
+    </div>
+    <!-- Rodapé da janela: Excluir (só ao editar), Cancelar e Salvar -->
+    <div class="modal-foot">
+      <!-- Exclui o acordo (pede confirmação) -->
+      <button class="btn btn-danger" id="btnExcluir" style="display:none;"><svg class="ic"><use href="#i-trash"/></svg>Excluir</button>
+      <div style="flex:1;"></div>
+      <button class="btn btn-ghost" id="btnCancelar">Cancelar</button>
+      <!-- Grava no banco (saveRecord em js/banco.js) -->
+      <button class="btn btn-primary" id="btnSalvar"><svg class="ic"><use href="#i-save"/></svg><span>Salvar acordo</span></button>
+    </div>
+  </div>
+</div>
+
+<!-- Base de parceiros -->
+<!-- JANELA DA BASE DE PARCEIROS -->
+<div class="overlay" id="overlayParc">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="parcTitulo">
+    <div class="modal-head">
+      <h2 id="parcTitulo">Base de parceiros</h2>
+      <button class="icon-btn" id="btnParcClose" aria-label="Fechar"><svg class="ic"><use href="#i-x"/></svg></button>
+    </div>
+    <div class="modal-body">
+      <!-- Resumo: quantos parceiros existem na base -->
+      <p class="parc-resumo" id="parcResumo">Carregando…</p>
+
+      <div class="section-title">Consultar um código</div>
+      <div class="field-row">
+        <!-- Consulta rápida: digite um código e veja o parceiro -->
+        <div class="field"><label for="parcBusca">Código do parceiro</label><input id="parcBusca" type="text" autocomplete="off" placeholder="ex: 601"></div>
+        <div class="field"><span class="lbl">Resultado</span><div class="parc-result" id="parcResultado">—</div></div>
+      </div>
+
+      <div class="section-title">Importar ou atualizar a base</div>
+      <p class="parc-help">Escolha a planilha exportada do Sankhya (.xls ou .xlsx) com código, razão social e vendedor. Parceiros que já existem são atualizados e os novos são adicionados. Nada é apagado.</p>
+      <!-- Escolha da planilha (.xls/.xlsx) para importar ou atualizar a base -->
+      <input type="file" id="parcArquivo" accept=".xlsx,.xls">
+
+      <!-- Escolha das colunas da planilha (aparece depois de escolher o arquivo) -->
+      <div id="parcMapa" style="display:none;">
+        <div class="field-row" style="margin-top:14px;">
+          <div class="field"><label for="parcAba">Aba da planilha</label><select id="parcAba"></select></div>
+          <div class="field"><label for="parcColCod">Coluna do código</label><select id="parcColCod"></select></div>
+        </div>
+        <div class="field-row three">
+          <div class="field"><label for="parcColRaz">Razão social</label><select id="parcColRaz"></select></div>
+          <div class="field"><label for="parcColVend">Vendedor</label><select id="parcColVend"></select></div>
+          <div class="field"><label for="parcColCoord">Coordenador (opcional)</label><select id="parcColCoord"></select></div>
+        </div>
+        <!-- Prévia da importação -->
+        <div id="parcPrevia"></div>
+      </div>
+      <!-- Andamento da importação -->
+      <div class="parc-progress" id="parcProgress" role="status"></div>
+    </div>
+    <div class="modal-foot">
+      <div style="flex:1;"></div>
+      <button class="btn btn-ghost" id="btnParcFechar">Fechar</button>
+      <!-- Grava os parceiros no banco -->
+      <button class="btn btn-primary" id="btnParcImportar" disabled><svg class="ic"><use href="#i-upload"/></svg>Importar parceiros</button>
+    </div>
+  </div>
+</div>
+
+<!-- Aviso rápido (toast). -->
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<!-- SCRIPTS (JavaScript) — a ordem importa: cada arquivo usa o que os anteriores definem. config = configurações e variáveis globais; -->
+<script src="js/config.js"></script>
+<!-- utilitarios = formatação, avisos e atalhos; -->
+<script src="js/utilitarios.js"></script>
+<!-- datas = validação de datas e critério de vigência; -->
+<script src="js/datas.js"></script>
+<!-- calculos = totais, investimento e saldo de cada acordo; -->
+<script src="js/calculos.js"></script>
+<!-- filtros = leitura e aplicação dos filtros; -->
+<script src="js/filtros.js"></script>
+<!-- tabela = desenho do resumo, da tabela e das mensagens de tela; -->
+<script src="js/tabela.js"></script>
+<!-- formulario = janela de criar/editar acordo; -->
+<script src="js/formulario.js"></script>
+<!-- banco = conversão de dados e gravação/leitura no Supabase; -->
+<script src="js/banco.js"></script>
+<!-- dados-iniciais = acordos originais da planilha (importados uma vez); -->
+<script src="js/dados-iniciais.js"></script>
+<!-- parceiros = base de parceiros, preenchimento automático e importação; -->
+<script src="js/parceiros.js"></script>
+<!-- principal = ligação dos botões e início do programa (por último). -->
+<script src="js/principal.js"></script>
+</body>
+</html>

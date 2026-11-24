@@ -1,0 +1,565 @@
+  /* ===== Tokens (mantém a identidade: papel quente, tinta escura, dourado) ===== */
+  /* Variáveis de cor, fonte e tamanho (modo CLARO). Para trocar uma cor do sistema inteiro, basta mudar aqui. */
+  :root {
+    /* Diz ao navegador que o tema é claro (controles nativos ficam claros) */
+    color-scheme: light;
+    /* Cor de fundo da página (papel quente) */
+    --bg: #F4F2EC;
+    /* Cor dos cartões e painéis (branco), mais duas variações de tom */
+    --surface: #FFFFFF;
+    --surface-2: #FAF8F3;
+    --surface-3: #EFEBE0;
+    /* Cores de texto: principal, secundária e apagada */
+    --ink: #1B2230;
+    --ink-2: #4A5362;
+    --muted: #7B8494;
+    /* Cores das linhas e bordas (suave e forte) */
+    --line: #E4DFD3;
+    --line-strong: #CFC8B8;
+    /* Dourado da marca (destaques) e suas variações */
+    --accent: #A9761F;
+    --accent-soft: #F6ECD4;
+    --accent-ink: #7C5410;
+    /* Verde (sucesso, assinado, meta batida) */
+    --green: #1F7A4D;
+    --green-soft: #E2F1E8;
+    /* Vermelho (erro, pendente, saldo a pagar) */
+    --red: #B03A2C;
+    --red-soft: #F8E6E2;
+    /* Fontes: texto (IBM Plex Sans), títulos (Source Serif 4) e números/códigos (IBM Plex Mono) */
+    --font-sans: 'IBM Plex Sans', -apple-system, 'Segoe UI', Arial, sans-serif;
+    --font-serif: 'Source Serif 4', Georgia, 'Times New Roman', serif;
+    --font-mono: 'IBM Plex Mono', 'Courier New', monospace;
+    /* Sombras leve e forte */
+    --shadow-sm: 0 1px 2px rgba(27,34,48,.06);
+    --shadow-lg: 0 24px 60px -16px rgba(27,34,48,.4);
+    /* Arredondamento das bordas: cartões (12px) e campos/botões (8px) */
+    --r-lg: 12px;
+    --r-md: 8px;
+    /* Anel dourado mostrado ao navegar pelo teclado */
+    --focus: 0 0 0 3px rgba(169,118,31,.35);
+  }
+  /* MODO ESCURO automático: vale quando o sistema do usuário está no tema escuro */
+  @media (prefers-color-scheme: dark) {
+    /* Só aplica se o tema não foi forçado para claro */
+    :root:not([data-theme="light"]) {
+      color-scheme: dark;
+      --bg: #12161E; --surface: #191F2A; --surface-2: #1E2533; --surface-3: #263044;
+      --ink: #EAE7DE; --ink-2: #B5BBC8; --muted: #8A93A6;
+      --line: #2E374A; --line-strong: #404B64;
+      --accent: #D6A94A; --accent-soft: #33301D; --accent-ink: #E6C174;
+      --green: #5CBB88; --green-soft: #1B2E22; --red: #E08171; --red-soft: #34201D;
+      --shadow-sm: none; --shadow-lg: 0 24px 60px -16px rgba(0,0,0,.7);
+      --focus: 0 0 0 3px rgba(214,169,74,.4);
+    }
+  }
+  /* Mesmas cores escuras, caso se force o tema escuro com data-theme="dark" */
+  :root[data-theme="dark"] {
+    color-scheme: dark;
+    --bg: #12161E; --surface: #191F2A; --surface-2: #1E2533; --surface-3: #263044;
+    --ink: #EAE7DE; --ink-2: #B5BBC8; --muted: #8A93A6;
+    --line: #2E374A; --line-strong: #404B64;
+    --accent: #D6A94A; --accent-soft: #33301D; --accent-ink: #E6C174;
+    --green: #5CBB88; --green-soft: #1B2E22; --red: #E08171; --red-soft: #34201D;
+    --shadow-sm: none; --shadow-lg: 0 24px 60px -16px rgba(0,0,0,.7);
+    --focus: 0 0 0 3px rgba(214,169,74,.4);
+  }
+
+  /* ===== Base ===== */
+  /* Largura dos elementos inclui borda e espaçamento (facilita os cálculos de layout) */
+  * { box-sizing: border-box; }
+  /* Remove as margens padrão do navegador */
+  html, body { margin: 0; padding: 0; }
+  /* Aparência geral da página: fundo, cor e fonte do texto, suavização das letras */
+  body {
+    background: var(--bg); color: var(--ink);
+    font-family: var(--font-sans); font-size: 14px; line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+  /* Trava a rolagem da página enquanto há uma janela aberta. */
+  /* Trava a rolagem da página enquanto uma janela está aberta */
+  body:has(.overlay.open) { overflow: hidden; }
+  /* Garante que elementos com 'hidden' realmente sumam */
+  [hidden] { display: none !important; }
+  /* Cor do texto selecionado com o mouse */
+  ::selection { background: var(--accent-soft); }
+  /* Texto só para leitores de tela (fica invisível na tela). */
+  /* Texto só para leitores de tela (invisível na tela) */
+  .sr-only { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0,0,0,0); border: 0; }
+  /* Ícones SVG: tamanho 16px, só contorno, na cor do texto ao redor */
+  .ic { width: 16px; height: 16px; flex: none; stroke: currentColor; fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+  /* Anel de foco para quem navega pelo teclado */
+  :focus-visible { outline: none; box-shadow: var(--focus); border-radius: 6px; }
+
+  /* Contêiner central da página (largura máxima 1320px) */
+  .app { max-width: 1320px; margin: 0 auto; padding: 28px 24px 80px; }
+
+  /* ===== Cabeçalho ===== */
+  /* Cabeçalho: logo/título à esquerda, botões à direita; quebra de linha em telas estreitas */
+  .app-head { display: flex; justify-content: space-between; align-items: flex-end; gap: 16px 24px; flex-wrap: wrap; margin-bottom: 22px; }
+  /* Título da página (fonte com serifa) */
+  .app-head h1 { font-family: var(--font-serif); font-weight: 600; font-size: 28px; line-height: 1.2; letter-spacing: -.01em; margin: 0 0 4px; }
+  /* Subtítulo */
+  .app-head .sub { margin: 0; color: var(--ink-2); font-size: 14px; }
+  /* Logo + título lado a lado */
+  .brand { display: flex; align-items: center; gap: 14px; min-width: 0; }
+  /* Logo do Grupo Alyne (quadrado com cantos arredondados) */
+  .brand-logo { width: 72px; height: 72px; border-radius: 12px; flex: none; display: block; box-shadow: var(--shadow-sm); }
+  /* Grupo de botões do cabeçalho */
+  .head-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+
+  /* ===== Botões ===== */
+  /* Botão base. As variações (primary, secondary, ghost, danger) só trocam as cores. */
+  /* Botão base: altura 36px, cantos arredondados, texto em negrito. As variações abaixo só trocam as cores */
+  .btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+    height: 36px; padding: 0 14px; border-radius: var(--r-md);
+    border: 1px solid transparent; font: 600 13.5px/1 var(--font-sans);
+    cursor: pointer; white-space: nowrap;
+    transition: background-color .15s ease, border-color .15s ease, color .15s ease, filter .15s ease;
+  }
+  /* Anel de foco do botão */
+  .btn:focus-visible { box-shadow: var(--focus); }
+  /* Botão desativado: meio apagado */
+  .btn:disabled { opacity: .45; cursor: not-allowed; }
+  /* Botão principal (escuro) */
+  .btn-primary { background: var(--ink); color: var(--bg); }
+  /* Principal ao passar o mouse: clareia */
+  .btn-primary:hover:not(:disabled) { filter: brightness(1.2); }
+  /* Botão secundário (branco com borda) */
+  .btn-secondary { background: var(--surface); color: var(--ink); border-color: var(--line-strong); }
+  /* Secundário ao passar o mouse */
+  .btn-secondary:hover:not(:disabled) { background: var(--surface-2); border-color: var(--ink-2); }
+  /* Botão discreto (sem borda) */
+  .btn-ghost { background: transparent; color: var(--ink-2); }
+  /* Discreto ao passar o mouse */
+  .btn-ghost:hover:not(:disabled) { background: var(--surface-3); color: var(--ink); }
+  /* Botão de perigo, como Excluir (contorno vermelho) */
+  .btn-danger { background: transparent; color: var(--red); border-color: var(--red); }
+  /* Perigo ao passar o mouse */
+  .btn-danger:hover:not(:disabled) { background: var(--red-soft); }
+  /* Botão pequeno (usado na tabela) */
+  .btn-sm { height: 30px; padding: 0 10px; font-size: 12.5px; gap: 6px; }
+  /* Botão quadrado só com ícone (ex.: fechar janela) */
+  .icon-btn { width: 34px; height: 34px; display: inline-flex; align-items: center; justify-content: center; border: 0; background: transparent; color: var(--ink-2); border-radius: var(--r-md); cursor: pointer; }
+  /* Ícone ao passar o mouse */
+  .icon-btn:hover { background: var(--surface-3); color: var(--ink); }
+  /* Faz o ícone girar (botão Atualizar) */
+  .spin { animation: spin .8s linear infinite; }
+  /* Animação de giro completo */
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ===== Alertas ===== */
+  /* Faixas de aviso: .err vermelho, .info neutro, .warn amarelo. */
+  /* Faixa de aviso base: ícone + texto */
+  .alert { display: flex; gap: 12px; align-items: flex-start; padding: 12px 14px; border-radius: 10px; border: 1px solid; font-size: 13.5px; margin-bottom: 16px; }
+  /* Alinha o ícone com a primeira linha */
+  .alert .ic { margin-top: 2px; }
+  /* Aviso de erro (vermelho) */
+  .alert.err { background: var(--red-soft); border-color: var(--red); color: var(--red); }
+  /* Aviso informativo (neutro) */
+  .alert.info { background: var(--surface); border-color: var(--line-strong); color: var(--ink-2); }
+  /* Aviso de atenção (amarelo) */
+  .alert.warn { background: var(--accent-soft); border-color: var(--accent); color: var(--accent-ink); }
+  /* Área de texto do aviso */
+  .alert-body { flex: 1; min-width: 0; }
+  /* Parágrafos dentro do aviso */
+  .alert-body p { margin: 4px 0 8px; }
+  /* Caixa com o SQL da migração (fonte monoespaçada) */
+  .alert textarea { width: 100%; font: 12px/1.5 var(--font-mono); padding: 10px; border-radius: var(--r-md); border: 1px solid var(--line-strong); background: var(--surface); color: var(--ink); resize: vertical; }
+
+  /* ===== Resumo ===== */
+  /* Frase acima do resumo: 'Resumo referente aos filtros aplicados' */
+  .kpis-note { font-size: 12.5px; color: var(--accent-ink); margin: 0 0 8px; min-height: 0; }
+  /* Some quando não há texto */
+  .kpis-note:empty { display: none; }
+  /* Cartões de resumo: as colunas se ajustam sozinhas (mínimo de 176px cada). */
+  /* Grade dos cartões de resumo: colunas automáticas (mínimo 176px) */
+  .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(176px, 1fr)); gap: 12px; margin-bottom: 20px; }
+  /* Cartão individual de resumo */
+  .kpi { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-lg); padding: 14px 16px; box-shadow: var(--shadow-sm); min-width: 0; }
+  /* Título pequeno do cartão */
+  .kpi-label { font-size: 12.5px; color: var(--muted); font-weight: 500; }
+  /* Valor grande do cartão (fonte serifada) */
+  .kpi-value { font-family: var(--font-serif); font-size: 22px; font-weight: 600; line-height: 1.25; margin-top: 4px; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+  /* Valor em dourado (investimento total) */
+  .kpi.gold .kpi-value { color: var(--accent); }
+  /* Valor em verde (já pago) */
+  .kpi.green .kpi-value { color: var(--green); }
+  /* Valor em vermelho (saldo em aberto) */
+  .kpi.red .kpi-value { color: var(--red); }
+
+  /* ===== Painéis e filtros ===== */
+  /* Painel branco com borda e sombra leve (base de filtros e tabela) */
+  .panel { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-lg); box-shadow: var(--shadow-sm); }
+  /* Espaçamento interno do painel de filtros */
+  .filters { padding: 16px 18px 18px; margin-bottom: 18px; }
+  /* Linha de título dos filtros: 'Filtros' à esquerda, 'Limpar' à direita */
+  .filters-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 14px; }
+  /* Ícone + palavra 'Filtros' + contador */
+  .filters-title { display: flex; align-items: center; gap: 8px; font-weight: 600; font-size: 14px; }
+  /* Bolinha com o número de filtros ativos */
+  .badge-count { min-width: 20px; height: 20px; padding: 0 6px; border-radius: 10px; background: var(--accent-soft); color: var(--accent-ink); font-size: 12px; font-weight: 600; display: inline-flex; align-items: center; justify-content: center; }
+  /* Grade de 12 colunas dos filtros: .fg-3, .fg-4, .fg-6 e .fg-12 dizem quantas colunas cada campo ocupa. */
+  /* Grade de 12 colunas onde os filtros se encaixam */
+  .filter-grid { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 14px; }
+  /* Largura dos campos em colunas: 3, 4, 6 ou 12 de 12 */
+  .fg-3 { grid-column: span 3; } .fg-4 { grid-column: span 4; } .fg-6 { grid-column: span 6; } .fg-12 { grid-column: span 12; }
+  /* Linha fina separando os grupos de filtros */
+  .filter-sep { grid-column: 1 / -1; height: 1px; background: var(--line); margin: 2px 0; }
+
+  /* Contêiner de um campo (rótulo + entrada) */
+  .field { min-width: 0; }
+  /* Rótulo acima do campo */
+  .field label, .lbl { display: block; font-size: 12.5px; font-weight: 600; color: var(--ink-2); margin-bottom: 6px; }
+  /* Aparência comum de todos os campos: altura 38px, borda, cantos arredondados */
+  .field input[type="text"], .field input[type="number"], .field input[type="date"], .field select, .field textarea, .input-group input {
+    width: 100%; height: 38px; padding: 0 11px; border: 1px solid var(--line-strong); border-radius: var(--r-md);
+    background: var(--surface); color: var(--ink); font: 400 14px var(--font-sans);
+    transition: border-color .15s ease, box-shadow .15s ease;
+  }
+  /* Caixa de texto de várias linhas (observações) */
+  .field textarea { height: auto; min-height: 76px; padding: 9px 11px; resize: vertical; line-height: 1.5; }
+  /* Cor do texto de exemplo dentro do campo */
+  .field input::placeholder, .field textarea::placeholder { color: var(--muted); }
+  /* Borda mais escura ao passar o mouse */
+  .field input:hover, .field select:hover, .field textarea:hover { border-color: var(--ink-2); }
+  /* Campo em foco: borda dourada e anel de foco */
+  .field input:focus, .field select:focus, .field textarea:focus, .input-group input:focus { outline: none; border-color: var(--accent); box-shadow: var(--focus); }
+  /* Campo com erro: borda vermelha */
+  .field input[aria-invalid="true"] { border-color: var(--red); }
+  /* Campo desativado: fundo cinza */
+  .field input:disabled, .field select:disabled { background: var(--surface-3); color: var(--muted); cursor: not-allowed; }
+  /* Campo + botão lado a lado (código do parceiro + Pesquisar) */
+  .input-group { display: flex; gap: 8px; }
+  /* O campo ocupa o espaço que sobra */
+  .input-group input { flex: 1; min-width: 0; }
+  /* Botão com a mesma altura do campo */
+  .input-group .btn { height: 38px; }
+  /* Caixa de seleção com texto (Incluir acordos sem datas) */
+  .check { display: inline-flex !important; align-items: center; gap: 8px; font-weight: 500 !important; color: var(--ink) !important; cursor: pointer; margin: 8px 0 0 !important; }
+  /* Tamanho e cor da caixinha */
+  .check input { width: 16px; height: 16px; accent-color: var(--accent); }
+  /* Texto apagado quando desativada */
+  .check input:disabled + span { color: var(--muted); }
+  /* Mensagens pequenas abaixo dos campos */
+  .field-msg, .hint { font-size: 12.5px; margin-top: 6px; color: var(--muted); }
+  /* Somem quando vazias */
+  .field-msg:empty, .hint:empty { display: none; }
+  /* Mensagem de erro (vermelha) */
+  .field-msg.err, .hint.err { color: var(--red); }
+  /* Mensagem de sucesso (verde) */
+  .field-msg.ok, .hint.ok { color: var(--green); }
+  /* Mensagem de atenção (dourada) */
+  .field-msg.warn, .hint.warn { color: var(--accent-ink); }
+
+  /* ===== Resultados e tabela ===== */
+  /* Linha acima da tabela com a contagem de resultados */
+  .results-head { display: flex; justify-content: space-between; align-items: center; margin: 0 2px 10px; min-height: 22px; }
+  /* Texto 'X de Y acordos' */
+  .results-count { font-size: 13px; color: var(--ink-2); }
+  /* Cartão da tabela: corta o conteúdo nos cantos arredondados */
+  .table-card { overflow: hidden; }
+  /* Permite rolar a tabela na horizontal em telas estreitas */
+  .table-scroll { overflow-x: auto; position: relative; }
+  /* Tabela principal. O min-width faz a tabela rolar na horizontal em telas médias, em vez de espremer as colunas. */
+  /* Tabela principal; o min-width evita espremer demais as colunas */
+  table.acordos { width: 100%; border-collapse: separate; border-spacing: 0; min-width: 1000px; }
+  /* Cabeçalho da tabela */
+  table.acordos thead th { text-align: left; font-size: 12px; font-weight: 600; color: var(--muted); padding: 11px 8px; background: var(--surface-2); border-bottom: 1px solid var(--line); white-space: nowrap; }
+  /* Células da tabela */
+  table.acordos td { padding: 12px 8px; border-bottom: 1px solid var(--line); vertical-align: middle; font-size: 13px; }
+  /* Última linha sem borda inferior */
+  table.acordos tbody tr:last-child td { border-bottom: none; }
+  /* Realça a linha sob o mouse */
+  table.acordos tbody tr:hover td { background: var(--surface-2); }
+  /* Colunas numéricas alinhadas à direita, sem quebra de linha */
+  th.num, td.num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  /* Largura mínima da coluna Cliente */
+  td.c-cliente { min-width: 160px; }
+  /* Texto principal da célula (nome do cliente) */
+  .cell-main { font-weight: 600; }
+  /* Texto secundário pequeno (código e nº do acordo) */
+  .cell-sub { font-size: 12px; color: var(--muted); margin-top: 1px; }
+  /* Fonte monoespaçada para códigos */
+  .mono { font-family: var(--font-mono); font-size: 12px; }
+  /* Texto da vigência sem quebra de linha */
+  .vig { white-space: nowrap; }
+  /* 'Sem vigência definida' em cinza */
+  .vig.empty { color: var(--muted); }
+  /* Texto 'SELL IN' / 'SELL OUT' */
+  .tipo-pill { font-size: 12px; font-weight: 600; color: var(--ink-2); white-space: nowrap; }
+  /* Pilha de etiquetas (status, assinado, meta) */
+  .chips { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; }
+  /* Etiqueta arredondada */
+  .chip { display: inline-flex; align-items: center; gap: 6px; padding: 2px 9px; border-radius: 999px; font-size: 12px; font-weight: 600; white-space: nowrap; }
+  /* Bolinha dentro da etiqueta de status */
+  .chip .dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+  /* Em andamento (dourado) */
+  .chip.andamento { background: var(--accent-soft); color: var(--accent-ink); }
+  /* Encerrado (cinza) */
+  .chip.encerrado { background: var(--surface-3); color: var(--ink-2); }
+  /* Pendente / não assinado / meta não batida (vermelho) */
+  .chip.pendente { background: var(--red-soft); color: var(--red); }
+  /* Assinado / meta batida (verde) */
+  .chip.ok { background: var(--green-soft); color: var(--green); }
+  /* Trilho da barra de progresso da meta */
+  .progress { height: 6px; border-radius: 3px; background: var(--surface-3); overflow: hidden; margin: 6px 0 3px auto; width: 88px; max-width: 100%; }
+  /* Parte preenchida da barra (dourada) */
+  .progress > span { display: block; height: 100%; background: var(--accent); border-radius: 3px; }
+  /* Barra verde quando a meta chegou a 100% */
+  .progress.done > span { background: var(--green); }
+  /* Texto com a porcentagem */
+  .progress-label { font-size: 12px; color: var(--muted); }
+  /* Aviso 'N mês(es) sem giro' */
+  .semgiro { font-size: 12px; color: var(--accent-ink); margin-top: 2px; }
+  /* Saldo a pagar em vermelho */
+  .saldo-pos { color: var(--red); font-weight: 600; }
+  /* Saldo zerado em verde */
+  .saldo-zero { color: var(--green); font-weight: 600; }
+
+  /* ===== Estados: carregando, vazio, erro ===== */
+  /* Efeito de carregamento (um brilho passando sobre blocos cinzas). */
+  /* Efeito 'carregando': bloco cinza com brilho passando */
+  .skeleton { background: linear-gradient(90deg, var(--surface-3) 25%, var(--surface-2) 40%, var(--surface-3) 60%); background-size: 300% 100%; animation: shimmer 1.4s ease infinite; border-radius: 6px; }
+  /* Animação do brilho */
+  @keyframes shimmer { 0% { background-position: 100% 50%; } 100% { background-position: 0 50%; } }
+  /* Altura de uma linha cinza */
+  .sk-line { height: 14px; }
+  /* Mensagens de tela (vazio / erro): centralizadas */
+  .state { padding: 56px 20px; text-align: center; display: grid; justify-items: center; gap: 8px; }
+  /* Círculo cinza com o ícone */
+  .state-ic { width: 48px; height: 48px; border-radius: 50%; background: var(--surface-3); color: var(--ink-2); display: inline-flex; align-items: center; justify-content: center; margin-bottom: 4px; }
+  /* Tamanho do ícone */
+  .state-ic .ic { width: 22px; height: 22px; }
+  /* Círculo vermelho no caso de erro */
+  .state.err .state-ic { background: var(--red-soft); color: var(--red); }
+  /* Título da mensagem */
+  .state h3 { font-family: var(--font-serif); font-size: 18px; font-weight: 600; margin: 0; }
+  /* Texto da mensagem (largura limitada para leitura) */
+  .state p { margin: 0; color: var(--ink-2); max-width: 52ch; }
+  /* Botões da mensagem */
+  .state-actions { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; justify-content: center; }
+
+  /* ===== Janelas (modais) ===== */
+  /* Janelas (modais): camada escura sobre a tela. A classe .open a exibe. */
+  /* Janelas (modais): camada escura cobrindo a tela inteira, escondida por padrão */
+  .overlay { position: fixed; inset: 0; background: rgba(18,22,30,.55); display: none; align-items: flex-start; justify-content: center; padding: 32px 16px; overflow-y: auto; z-index: 50; }
+  /* Com a classe 'open' a janela aparece */
+  .overlay.open { display: flex; }
+  /* Caixa branca da janela */
+  .modal { background: var(--surface); border-radius: 14px; width: 100%; max-width: 820px; border: 1px solid var(--line); box-shadow: var(--shadow-lg); display: flex; flex-direction: column; }
+  /* Topo da janela (título + fechar), fixo ao rolar */
+  .modal-head { display: flex; justify-content: space-between; align-items: center; padding: 16px 24px; border-bottom: 1px solid var(--line); position: sticky; top: 0; background: var(--surface); border-radius: 14px 14px 0 0; z-index: 2; }
+  /* Título da janela */
+  .modal-head h2 { font-family: var(--font-serif); font-size: 20px; font-weight: 600; margin: 0; }
+  /* Corpo da janela */
+  .modal-body { padding: 8px 24px 22px; }
+  /* Rodapé da janela (botões), fixo ao rolar */
+  .modal-foot { display: flex; align-items: center; gap: 10px; padding: 14px 24px; border-top: 1px solid var(--line); position: sticky; bottom: 0; background: var(--surface); border-radius: 0 0 14px 14px; z-index: 2; }
+  /* Título de seção dentro do formulário */
+  .section-title { font-family: var(--font-serif); font-size: 15px; font-weight: 600; margin: 22px 0 12px; padding-top: 18px; border-top: 1px solid var(--line); }
+  /* A primeira seção não tem linha acima */
+  .section-title:first-child { margin-top: 12px; padding-top: 0; border-top: none; }
+  /* Texto de apoio abaixo do título da seção */
+  .section-sub { font-size: 12.5px; color: var(--muted); margin: -6px 0 12px; }
+  /* Linha do formulário com 2 colunas */
+  .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 14px; }
+  /* Linha com 3 colunas */
+  .field-row.three { grid-template-columns: 1fr 1fr 1fr; }
+  /* Última linha sem margem inferior */
+  .field-row:last-child { margin-bottom: 0; }
+
+  /* Controle de 2 opções lado a lado (contrato assinado e regra de investimento). */
+  /* Controle de opções lado a lado (assinado, meta, regra) */
+  .segmented { display: inline-flex; padding: 3px; gap: 3px; border: 1px solid var(--line-strong); border-radius: var(--r-md); background: var(--surface-2); }
+  /* Cada opção do controle */
+  .segmented button { height: 30px; padding: 0 14px; border: 0; border-radius: 6px; background: transparent; color: var(--ink-2); font: 600 13px var(--font-sans); cursor: pointer; white-space: nowrap; }
+  /* Opção sob o mouse */
+  .segmented button:hover { color: var(--ink); }
+  /* Opção escolhida (branca com contorno) */
+  .segmented button.active { background: var(--surface); color: var(--ink); box-shadow: 0 0 0 1px var(--line-strong); }
+  /* Opção 'Sim/Bateu' escolhida: verde */
+  .segmented button.active.sim { color: var(--green); box-shadow: 0 0 0 1px var(--green); background: var(--green-soft); }
+  /* Opção 'Não' escolhida: vermelha */
+  .segmented button.active.nao { color: var(--red); box-shadow: 0 0 0 1px var(--red); background: var(--red-soft); }
+  /* Aviso 'Meta não batida...' com margens ajustadas */
+  #metaAviso, #metaIndisponivel { margin: -6px 0 16px; }
+  /* Alternador da regra de investimento ocupando a largura toda */
+  .regra-toggle { display: flex; margin-bottom: 14px; }
+  /* Cada botão divide o espaço igualmente */
+  .regra-toggle button { flex: 1; }
+
+  /* Cartão 'Contrato assinado?' / 'O cliente bateu a meta?' */
+  .signed-card { display: flex; justify-content: space-between; align-items: center; gap: 14px; flex-wrap: wrap; border: 1px solid var(--line-strong); border-radius: 10px; padding: 14px 16px; margin-top: 16px; background: var(--surface-2); transition: border-color .15s ease; }
+  /* Borda verde (assinado / bateu) */
+  .signed-card.is-signed { border-color: var(--green); }
+  /* Borda vermelha (não assinado / não bateu) */
+  .signed-card.is-pending { border-color: var(--red); }
+  /* Título do cartão */
+  .signed-card-title { font-weight: 600; }
+  /* Explicação do cartão */
+  .signed-card-sub { font-size: 12.5px; color: var(--muted); margin-top: 2px; }
+
+  /* Permite rolar a grade de meses na horizontal */
+  .meses-grid { overflow-x: auto; }
+  /* Grade dos 12 meses dentro do formulário. */
+  /* Grade dos 12 meses no formulário */
+  table.meses { border-collapse: collapse; width: 100%; min-width: 700px; }
+  /* Títulos dos meses */
+  table.meses th { font-size: 11.5px; color: var(--muted); padding: 6px 4px; text-align: center; font-weight: 600; }
+  /* Células da grade */
+  table.meses td { padding: 3px 4px; }
+  /* Nome da linha (Acordado, Realizado, Sem giro?) */
+  table.meses td.rowlabel { font-size: 12px; color: var(--ink-2); font-weight: 600; white-space: nowrap; padding-right: 10px; }
+  /* Campos numéricos da grade */
+  table.meses input { width: 86px; height: 32px; padding: 0 8px; border: 1px solid var(--line-strong); border-radius: 6px; font: 12.5px var(--font-sans); background: var(--surface); color: var(--ink); text-align: right; font-variant-numeric: tabular-nums; }
+  /* Campo em foco */
+  table.meses input:focus { outline: none; border-color: var(--accent); box-shadow: var(--focus); }
+  /* Campo de anotação 'sem giro' (texto à esquerda) */
+  table.meses input.nota-input { text-align: left; font-size: 11.5px; color: var(--ink-2); }
+  /* Quando há anotação, o campo fica dourado para chamar atenção */
+  table.meses input.nota-input:not(:placeholder-shown) { border-color: var(--accent); color: var(--accent-ink); background: var(--accent-soft); }
+  /* Grade dos 5 campos de pagamentos */
+  .pagto-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; }
+  /* Faixa de totais calculados no formulário. */
+  /* Faixa de totais calculados no formulário (5 colunas) */
+  .computed-strip { display: grid; grid-template-columns: repeat(5, 1fr); border: 1px solid var(--line); border-radius: 10px; margin-top: 18px; overflow: hidden; background: var(--surface-2); }
+  /* Cada total */
+  .computed-strip .c { padding: 10px 12px; border-right: 1px solid var(--line); min-width: 0; }
+  /* Último sem divisória à direita */
+  .computed-strip .c:last-child { border-right: none; }
+  /* Título do total */
+  .computed-strip .l { font-size: 11.5px; color: var(--muted); font-weight: 600; margin-bottom: 2px; }
+  /* Valor do total */
+  .computed-strip .v { font-size: 13.5px; font-weight: 600; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+
+  /* Base de parceiros */
+  /* Frase de resumo da base de parceiros */
+  .parc-resumo { margin: 12px 0 0; font-size: 14px; font-weight: 500; }
+  /* Em vermelho se houver erro */
+  .parc-resumo.err { color: var(--red); }
+  /* Caixa do resultado da consulta de código */
+  .parc-result { padding: 8px 11px; min-height: 38px; border: 1px dashed var(--line-strong); border-radius: var(--r-md); font-size: 13.5px; color: var(--muted); display: flex; align-items: center; }
+  /* Resultado encontrado: borda contínua */
+  .parc-result.ok { color: var(--ink); border-style: solid; background: var(--surface-2); }
+  /* Texto de ajuda da importação */
+  .parc-help { font-size: 13px; color: var(--ink-2); margin: 0 0 10px; }
+  /* Texto de andamento da importação */
+  .parc-progress { margin-top: 14px; font-size: 13.5px; }
+  /* Erro em vermelho */
+  .parc-progress.err { color: var(--red); }
+  /* Sucesso em verde */
+  .parc-progress.ok { color: var(--green); }
+  /* Campo de escolher arquivo */
+  #parcArquivo { font-size: 13px; max-width: 100%; }
+  /* Moldura da prévia, rolável na horizontal */
+  .previa-wrap { overflow-x: auto; margin-top: 10px; border: 1px solid var(--line); border-radius: var(--r-md); }
+  /* Tabela da prévia */
+  table.previa { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+  /* Células da prévia */
+  table.previa th, table.previa td { padding: 6px 10px; border-bottom: 1px solid var(--line); text-align: left; }
+  /* Última linha sem borda */
+  table.previa tr:last-child td { border-bottom: none; }
+  /* Cabeçalho da prévia */
+  table.previa th { color: var(--muted); font-weight: 600; background: var(--surface-2); }
+
+  /* ===== Aviso rápido ===== */
+  /* Aviso rápido flutuante no rodapé; .erro deixa vermelho. */
+  /* Aviso flutuante no rodapé, escondido por padrão */
+  .toast { position: fixed; left: 50%; bottom: 24px; transform: translate(-50%, 12px); background: var(--ink); color: var(--bg); padding: 11px 16px; border-radius: 10px; font-size: 13.5px; display: flex; align-items: center; gap: 10px; opacity: 0; pointer-events: none; transition: opacity .2s ease, transform .2s ease; z-index: 100; max-width: calc(100% - 32px); box-shadow: var(--shadow-lg); }
+  /* Visível quando recebe a classe 'show' */
+  .toast.show { opacity: 1; transform: translate(-50%, 0); }
+  /* Versão vermelha para erros */
+  .toast.erro { background: var(--red); color: #fff; }
+
+  /* Respeita quem desativou animações no sistema operacional. */
+  /* Quem desativou animações no sistema não vê giros nem brilhos */
+  @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
+
+  /* ===== Tablet ===== */
+  /* TABLET (até 1000px de largura) */
+  @media (max-width: 1000px) {
+    /* Filtros passam a ocupar metade da largura */
+    .fg-3, .fg-4 { grid-column: span 6; }
+    /* Grades de 3 colunas */
+    .pagto-grid, .computed-strip { grid-template-columns: repeat(3, 1fr); }
+    /* Divisória inferior nos totais */
+    .computed-strip .c { border-bottom: 1px solid var(--line); }
+  }
+
+  /* ===== Celular ===== */
+  /* CELULAR (até 760px de largura) */
+  @media (max-width: 760px) {
+    /* Margens menores */
+    .app { padding: 20px 16px 64px; }
+    /* Título menor */
+    .app-head h1 { font-size: 22px; }
+    /* Logo menor */
+    .brand-logo { width: 48px; height: 48px; border-radius: 10px; }
+    /* Botões do cabeçalho ocupam a largura toda */
+    .head-actions { width: 100%; }
+    /* 'Novo acordo' cresce para preencher */
+    .head-actions .btn-primary { flex: 1; }
+    /* Resumo em 2 colunas */
+    .kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+    /* Cartões mais compactos */
+    .kpi { padding: 12px 14px; }
+    /* Valores menores */
+    .kpi-value { font-size: 18px; }
+    /* Menos espaço entre filtros */
+    .filter-grid { gap: 12px; }
+    /* Cada filtro ocupa a linha inteira */
+    .fg-3, .fg-4, .fg-6 { grid-column: 1 / -1; }
+    /* Exceto as duas datas, lado a lado */
+    .fg-3.pair { grid-column: span 6; }
+    /* Tabela sem largura mínima */
+    table.acordos { min-width: 0; }
+    /* Esconde o cabeçalho (cada célula mostra seu próprio rótulo) */
+    table.acordos thead { display: none; }
+    /* Tabela vira lista de blocos */
+    table.acordos, table.acordos tbody { display: block; }
+    /* Cada acordo vira um 'cartão' com 2 colunas */
+    table.acordos tbody tr { display: grid; grid-template-columns: 1fr 1fr; gap: 12px 14px; padding: 14px 16px; border-bottom: 1px solid var(--line); }
+    /* Último cartão sem borda */
+    table.acordos tbody tr:last-child { border-bottom: none; }
+    /* Células empilhadas dentro do cartão */
+    table.acordos td { display: block; padding: 0; border: 0; }
+    /* Sem realce ao passar o dedo */
+    table.acordos tbody tr:hover td { background: transparent; }
+    /* Mostra o nome da coluna (atributo data-label) acima de cada valor */
+    table.acordos td[data-label]::before { content: attr(data-label); display: block; font-size: 11.5px; font-weight: 600; color: var(--muted); margin-bottom: 2px; }
+    /* Cliente e botão ocupam a largura toda */
+    td.c-cliente, td.c-actions { grid-column: 1 / -1; }
+    /* O nome do cliente dispensa rótulo */
+    table.acordos td.c-cliente::before { display: none; }
+    /* Números alinhados à esquerda */
+    th.num, td.num { text-align: left; }
+    /* Barra de progresso alinhada à esquerda */
+    .progress { margin-left: 0; }
+    /* Botão Editar em largura total */
+    td.c-actions .btn { width: 100%; }
+    /* Etiquetas lado a lado */
+    .chips { flex-direction: row; flex-wrap: wrap; }
+  }
+  /* CELULAR PEQUENO: janelas ocupam a tela inteira */
+  @media (max-width: 640px) {
+    /* Sem margem ao redor da janela */
+    .overlay { padding: 0; }
+    /* Janela sem cantos arredondados e em tela cheia */
+    .modal { border-radius: 0; border: 0; min-height: 100%; max-width: none; }
+    /* Topo e rodapé com menos espaçamento */
+    .modal-head, .modal-foot { border-radius: 0; padding-left: 16px; padding-right: 16px; }
+    /* Corpo com menos espaçamento */
+    .modal-body { padding: 4px 16px 20px; }
+    /* Campos em coluna única */
+    .field-row, .field-row.three { grid-template-columns: 1fr; }
+    /* Grades de 2 colunas */
+    .pagto-grid, .computed-strip { grid-template-columns: repeat(2, 1fr); }
+    /* Botões do rodapé podem quebrar linha */
+    .modal-foot { flex-wrap: wrap; }
+    /* Botões dividem a largura */
+    .modal-foot .btn { flex: 1; }
+    /* Botão Excluir vai para a linha de baixo */
+    #btnExcluir { flex-basis: 100%; order: 3; }
+  }
